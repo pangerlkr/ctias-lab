@@ -159,7 +159,7 @@ We welcome contributions from security professionals, data scientists, and devel
 
 **Project Maintainer**: Graceme Kamei (@pangerlkr)  
 **Organization**: NEXUSCIPHERGUARD INDIA  
-**Contact**: contact@nexuscipherguard.in  
+**Contact**: contact@pangerlkr.link  
 **Location**: Kohima, Nagaland, India  
 
 ---
