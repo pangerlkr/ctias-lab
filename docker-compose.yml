@@ -1,0 +1,104 @@
+version: '3.9'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: ctias-postgres
+    environment:
+      POSTGRES_DB: ctias_lab
+      POSTGRES_USER: ctias
+      POSTGRES_PASSWORD: ctias_secure_password_change_me
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - ctias-network
+
+  # Redis Cache & Job Queue
+  redis:
+    image: redis:7-alpine
+    container_name: ctias-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - ctias-network
+
+  # Frontend (React/Vue)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ctias-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      REACT_APP_API_URL: http://localhost:8000
+    depends_on:
+      - gateway
+    networks:
+      - ctias-network
+
+  # Gateway API (FastAPI)
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    container_name: ctias-gateway
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://ctias:ctias_secure_password_change_me@postgres:5432/ctias_lab
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: your_jwt_secret_key_change_me
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - ctias-network
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  # Python Modules
+  python-modules:
+    build:
+      context: ./modules-python
+      dockerfile: Dockerfile
+    container_name: ctias-python-modules
+    ports:
+      - "5001:5000"
+    depends_on:
+      - redis
+    networks:
+      - ctias-network
+
+  # Java Modules
+  java-modules:
+    build:
+      context: ./modules-java
+      dockerfile: Dockerfile
+    container_name: ctias-java-modules
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - ctias-network
+
+  # JavaScript Modules
+  js-modules:
+    build:
+      context: ./modules-js
+      dockerfile: Dockerfile
+    container_name: ctias-js-modules
+    ports:
+      - "5002:3000"
+    networks:
+      - ctias-network
+
+volumes:
+  postgres_data:
+
+networks:
+  ctias-network:
+    driver: bridge
