@@ -5,7 +5,7 @@
 If you discover a security vulnerability in CTIAS Lab, please report it responsibly:
 
 1. **DO NOT** open a public GitHub issue
-2. Email: security@nexuscipherguard.in
+2. Email: contact@pangerlkr.link
 3. Include:
    - Description of the vulnerability
    - Steps to reproduce
