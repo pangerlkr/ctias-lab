@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 🛡️ Security Advisory
+    url: https://github.com/pangerlkr/ctias-lab/security/advisories
+    about: Report security vulnerabilities privately
+  - name: 💬 Community Discussion
+    url: https://github.com/pangerlkr/ctias-lab/discussions
+    about: Ask questions and discuss with the community
+  - name: 📖 Documentation
+    url: https://github.com/pangerlkr/ctias-lab/tree/main/docs
+    about: View project documentation and guides
