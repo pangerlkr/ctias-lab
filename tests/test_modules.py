@@ -13,8 +13,8 @@ class TestModules(unittest.TestCase):
     def test_import_dependencies(self):
         """Test that core dependencies can be imported"""
         try:
-            import fastapi
-            import requests
+            import fastapi  # noqa: F401
+            import requests  # noqa: F401
             self.assertTrue(True)
         except ImportError as e:
             self.fail(f"Failed to import dependencies: {e}")
