@@ -13,7 +13,7 @@ class TestModules(unittest.TestCase):
     def test_import_dependencies(self):
         """Test that core dependencies can be imported"""
         try:
-            import flask
+            import fastapi
             import requests
             self.assertTrue(True)
         except ImportError as e:
