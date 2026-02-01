@@ -1,0 +1,60 @@
+name: CTIAS Lab
+description: |
+  Cyber Threat Intelligence & Attack Surface Lab - A multi-language, extensible cybersecurity platform 
+  for threat analysis, IOC enrichment, attack surface reconnaissance, and collaborative threat detection.
+  
+  Built with Python, Java, JavaScript for enterprise-grade threat intelligence operations.
+
+topics:
+  - cybersecurity
+  - threat-intelligence
+  - security-tools
+  - ioc-analysis
+  - attack-surface
+  - penetration-testing
+  - security-research
+  - python
+  - java
+  - javascript
+  - docker
+  - fastapi
+  - machine-learning
+  - threat-detection
+  - osint
+
+links:
+  - title: Documentation
+    url: https://github.com/pangerlkr/ctias-lab/tree/main/docs
+  - title: Contributing Guide
+    url: https://github.com/pangerlkr/ctias-lab/blob/main/CONTRIBUTING.md
+  - title: Security Policy
+    url: https://github.com/pangerlkr/ctias-lab/blob/main/SECURITY.md
+  - title: License
+    url: https://github.com/pangerlkr/ctias-lab/blob/main/LICENSE
+  - title: Project Website
+    url: https://pangerlkr.link
+
+organization:
+  name: NEXUSCIPHERGUARD INDIA
+  location: Kohima, Nagaland, India
+
+maintainer:
+  name: Graceme Kamei
+  github: pangerlkr
+  email: contact@pangerlkr.link
+
+features:
+  - Attack Surface Mapping with visual graph representation
+  - IOC Analyzer with ML and reputation checks
+  - Event & Log Processing with real-time detection
+  - Rule & Playbook Studio with live validation
+  - Training Lab with guided cybersecurity exercises
+  - Multi-language architecture (Python, Java, JavaScript)
+
+tags:
+  - defensive-security
+  - educational
+  - threat-hunting
+  - siem
+  - incident-response
+  - vulnerability-assessment
