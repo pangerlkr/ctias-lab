@@ -8,5 +8,5 @@ pytz==2023.3
 jinja2==3.1.2
 click==8.1.7
 tqdm==4.66.1
-logging-json==0.0.2
+logging-json==0.2.0
 flask==3.0.0
