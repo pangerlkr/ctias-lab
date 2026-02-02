@@ -2,7 +2,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Dict, Any
+from typing import List
 import sys
 import os
 
@@ -79,7 +79,7 @@ async def analyze_ioc(request: IOCRequest):
     """Analyze a single IOC"""
     if not ioc_analyzer:
         raise HTTPException(status_code=503, detail="IOC Analyzer service unavailable")
-    
+
     result = ioc_analyzer.analyze(request.ioc)
     return result
 
@@ -89,7 +89,7 @@ async def batch_analyze_ioc(request: BatchIOCRequest):
     """Analyze multiple IOCs"""
     if not ioc_analyzer:
         raise HTTPException(status_code=503, detail="IOC Analyzer service unavailable")
-    
+
     results = ioc_analyzer.batch_analyze(request.iocs)
     return {"results": results, "count": len(results)}
 
@@ -99,7 +99,7 @@ async def get_threat_feeds():
     """Get configured threat feeds"""
     if not threat_feed:
         raise HTTPException(status_code=503, detail="Threat Feed service unavailable")
-    
+
     feeds = threat_feed.get_feeds()
     return {"feeds": feeds, "count": len(feeds)}
 
@@ -109,7 +109,7 @@ async def get_threat_indicators():
     """Get threat indicators from feeds"""
     if not threat_feed:
         raise HTTPException(status_code=503, detail="Threat Feed service unavailable")
-    
+
     indicators = threat_feed.fetch_indicators()
     return {"indicators": indicators, "count": len(indicators)}
 

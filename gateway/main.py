@@ -1,5 +1,4 @@
 """CTIAS Lab Gateway API - Main FastAPI Application"""
-import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -29,20 +28,25 @@ app.add_middleware(
 )
 
 # Request/Response models
+
+
 class HealthCheckResponse(BaseModel):
     status: str
     version: str
     database: str
     redis: str
 
+
 class IOCSubmission(BaseModel):
     ioc_value: str
     ioc_type: str  # ip, domain, url, hash, email
     tags: list[str] = []
 
+
 class ReconRequest(BaseModel):
     target: str
     modules: list[str] = ["dns", "whois", "ssl"]
+
 
 # Routes
 @app.get("/")
@@ -58,6 +62,7 @@ async def root():
             "recon": "/api/v1/recon"
         }
     }
+
 
 @app.get("/health")
 async def health_check():
@@ -76,6 +81,7 @@ async def health_check():
             content={"status": "unhealthy", "error": str(e)}
         )
 
+
 @app.post("/api/v1/ioc/analyze")
 async def analyze_ioc(submission: IOCSubmission):
     """Analyze an Indicator of Compromise (IOC)"""
@@ -93,6 +99,7 @@ async def analyze_ioc(submission: IOCSubmission):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+
 @app.post("/api/v1/recon")
 async def start_reconnaissance(recon_req: ReconRequest):
     """Start reconnaissance on a target"""
@@ -107,6 +114,7 @@ async def start_reconnaissance(recon_req: ReconRequest):
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
 
 @app.get("/api/v1/status/{task_id}")
 async def get_task_status(task_id: str):
