@@ -1,6 +1,7 @@
 """Threat Feed Module for CTIAS Lab"""
-from typing import Dict, List, Any
+
 from datetime import datetime
+from typing import Any, Dict, List
 
 
 class ThreatFeed:
@@ -11,16 +12,14 @@ class ThreatFeed:
         self.cache = {}
         self.last_update = None
 
-    def add_feed(
-        self, feed_name: str, feed_url: str, feed_type: str = 'generic'
-    ):
+    def add_feed(self, feed_name: str, feed_url: str, feed_type: str = "generic"):
         """Add a new threat feed source"""
         feed = {
-            'name': feed_name,
-            'url': feed_url,
-            'type': feed_type,
-            'added': datetime.now().isoformat(),
-            'status': 'active'
+            "name": feed_name,
+            "url": feed_url,
+            "type": feed_type,
+            "added": datetime.now().isoformat(),
+            "status": "active",
         }
         self.feeds.append(feed)
         return feed
@@ -31,10 +30,7 @@ class ThreatFeed:
 
     def update_feed(self, feed_name: str, data: Dict[str, Any]):
         """Update threat feed data"""
-        self.cache[feed_name] = {
-            'data': data,
-            'updated': datetime.now().isoformat()
-        }
+        self.cache[feed_name] = {"data": data, "updated": datetime.now().isoformat()}
         self.last_update = datetime.now()
 
     def get_cached_data(self, feed_name: str) -> Dict[str, Any]:
@@ -45,9 +41,9 @@ class ThreatFeed:
         """Aggregate threat data from all feeds"""
         threats = []
         for feed_name, feed_data in self.cache.items():
-            if 'data' in feed_data:
-                for threat in feed_data['data'].get('threats', []):
-                    threat['source'] = feed_name
+            if "data" in feed_data:
+                for threat in feed_data["data"].get("threats", []):
+                    threat["source"] = feed_name
                     threats.append(threat)
         return threats
 
@@ -59,7 +55,7 @@ class ThreatFeed:
     def remove_feed(self, feed_name: str) -> bool:
         """Remove a threat feed"""
         for i, feed in enumerate(self.feeds):
-            if feed['name'] == feed_name:
+            if feed["name"] == feed_name:
                 self.feeds.pop(i)
                 if feed_name in self.cache:
                     del self.cache[feed_name]
