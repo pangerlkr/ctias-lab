@@ -1,6 +1,6 @@
 """Threat Feed Module for CTIAS Lab"""
 from typing import Dict, List, Any
-from datetime import import datetime
+from datetime import datetime
 
 
 class ThreatFeed:
