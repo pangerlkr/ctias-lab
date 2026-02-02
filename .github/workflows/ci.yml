@@ -90,11 +90,11 @@ jobs:
 
       - name: Build Docker images
         run: |
-          docker-compose build --no-cache
+          docker compose build --no-cache
 
       - name: Test Docker Compose
         run: |
-          docker-compose config
+          docker compose config
 
   security-scan:
     name: Security Vulnerability Scan
@@ -127,7 +127,7 @@ jobs:
           output: 'trivy-results.sarif'
 
       - name: Upload Trivy results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
