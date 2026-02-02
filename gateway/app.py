@@ -1,13 +1,17 @@
 """FastAPI Gateway for CTIAS Lab"""
+
+import os
+import sys
+from typing import List
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List
-import sys
-import os
 
 # Add modules to path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'modules-python')))
+sys.path.insert(
+    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "modules-python"))
+)
 
 try:
     from ioc_analyzer import IOCAnalyzer
@@ -20,7 +24,7 @@ except ImportError:
 app = FastAPI(
     title="CTIAS Lab API",
     description="Cyber Threat Intelligence & Attack Surface Lab API Gateway",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 # Configure CORS
@@ -57,8 +61,8 @@ async def root():
             "/api/ioc/analyze",
             "/api/ioc/batch",
             "/api/threats/feeds",
-            "/api/threats/indicators"
-        ]
+            "/api/threats/indicators",
+        ],
     }
 
 
@@ -69,8 +73,8 @@ async def health_check():
         "status": "healthy",
         "services": {
             "ioc_analyzer": "available" if ioc_analyzer else "unavailable",
-            "threat_feed": "available" if threat_feed else "unavailable"
-        }
+            "threat_feed": "available" if threat_feed else "unavailable",
+        },
     }
 
 
@@ -116,4 +120,5 @@ async def get_threat_indicators():
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

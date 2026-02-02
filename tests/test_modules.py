@@ -1,10 +1,11 @@
 """Unit tests for CTIAS Lab modules"""
-import unittest
-import sys
+
 import os
+import sys
+import unittest
 
 # Add parent directory to path for imports
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 
 class TestModules(unittest.TestCase):
@@ -15,6 +16,7 @@ class TestModules(unittest.TestCase):
         try:
             import fastapi  # noqa: F401
             import requests  # noqa: F401
+
             self.assertTrue(True)
         except ImportError as e:
             self.fail(f"Failed to import dependencies: {e}")
@@ -25,5 +27,5 @@ class TestModules(unittest.TestCase):
         self.assertTrue(True)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

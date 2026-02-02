@@ -1,9 +1,11 @@
 """CTIAS Lab Gateway API - Main FastAPI Application"""
+
+import logging
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-import logging
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -15,7 +17,7 @@ app = FastAPI(
     description="Central gateway for Cyber Threat Intelligence & Attack Surface Lab",
     version="1.0.0",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
 )
 
 # Add CORS middleware
@@ -59,8 +61,8 @@ async def root():
             "health": "/health",
             "docs": "/docs",
             "ioc_analyze": "/api/v1/ioc/analyze",
-            "recon": "/api/v1/recon"
-        }
+            "recon": "/api/v1/recon",
+        },
     }
 
 
@@ -69,16 +71,12 @@ async def health_check():
     """Health check endpoint"""
     try:
         return HealthCheckResponse(
-            status="healthy",
-            version="1.0.0",
-            database="connected",
-            redis="connected"
+            status="healthy", version="1.0.0", database="connected", redis="connected"
         )
     except Exception as e:
         logger.error(f"Health check failed: {str(e)}")
         return JSONResponse(
-            status_code=503,
-            content={"status": "unhealthy", "error": str(e)}
+            status_code=503, content={"status": "unhealthy", "error": str(e)}
         )
 
 
@@ -94,7 +92,7 @@ async def analyze_ioc(submission: IOCSubmission):
             "reputation": "medium",
             "threat_level": "moderate",
             "tags": submission.tags,
-            "status": "queued for analysis"
+            "status": "queued for analysis",
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -110,7 +108,7 @@ async def start_reconnaissance(recon_req: ReconRequest):
             "target": recon_req.target,
             "modules": recon_req.modules,
             "status": "started",
-            "progress": 0
+            "progress": 0,
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -119,17 +117,10 @@ async def start_reconnaissance(recon_req: ReconRequest):
 @app.get("/api/v1/status/{task_id}")
 async def get_task_status(task_id: str):
     """Get status of a task"""
-    return {
-        "task_id": task_id,
-        "status": "processing",
-        "progress": 50
-    }
+    return {"task_id": task_id, "status": "processing", "progress": 50}
+
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(
-        app,
-        host="0.0.0.0",
-        port=8000,
-        log_level="info"
-    )
+
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
