@@ -1,7 +1,6 @@
 """Threat Feed Module for CTIAS Lab"""
-import time
 from typing import Dict, List, Any
-from datetime import datetime
+from datetime import import datetime
 
 
 class ThreatFeed:
@@ -12,7 +11,9 @@ class ThreatFeed:
         self.cache = {}
         self.last_update = None
 
-    def add_feed(self, feed_name: str, feed_url: str, feed_type: str = 'generic'):
+    def add_feed(
+        self, feed_name: str, feed_url: str, feed_type: str = 'generic'
+    ):
         """Add a new threat feed source"""
         feed = {
             'name': feed_name,
@@ -28,44 +29,39 @@ class ThreatFeed:
         """Get all configured threat feeds"""
         return self.feeds
 
-    def fetch_indicators(self, feed_name: str = None) -> List[Dict[str, Any]]:
-        """Fetch indicators from threat feeds"""
-        # Placeholder implementation
-        indicators = [
-            {'type': 'ip', 'value': '192.0.2.1', 'confidence': 85, 'source': 'demo_feed'},
-            {'type': 'domain', 'value': 'malicious.example.com', 'confidence': 90, 'source': 'demo_feed'},
-            {'type': 'hash', 'value': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', 'confidence': 95, 'source': 'demo_feed'}
-        ]
-        
-        if feed_name:
-            indicators = [i for i in indicators if i['source'] == feed_name]
-        
-        self.last_update = datetime.now()
-        return indicators
-
-    def enrich_ioc(self, ioc: str, ioc_type: str) -> Dict[str, Any]:
-        """Enrich an IOC with threat intelligence"""
-        # Check cache first
-        cache_key = f"{ioc_type}:{ioc}"
-        if cache_key in self.cache:
-            return self.cache[cache_key]
-        
-        # Placeholder enrichment
-        enrichment = {
-            'ioc': ioc,
-            'type': ioc_type,
-            'threat_score': 50,
-            'first_seen': datetime.now().isoformat(),
-            'last_seen': datetime.now().isoformat(),
-            'tags': ['suspicious'],
-            'sources': ['internal']
+    def update_feed(self, feed_name: str, data: Dict[str, Any]):
+        """Update threat feed data"""
+        self.cache[feed_name] = {
+            'data': data,
+            'updated': datetime.now().isoformat()
         }
-        
-        # Cache result
-        self.cache[cache_key] = enrichment
-        return enrichment
+        self.last_update = datetime.now()
+
+    def get_cached_data(self, feed_name: str) -> Dict[str, Any]:
+        """Retrieve cached feed data"""
+        return self.cache.get(feed_name, {})
+
+    def aggregate_threats(self) -> List[Dict[str, Any]]:
+        """Aggregate threat data from all feeds"""
+        threats = []
+        for feed_name, feed_data in self.cache.items():
+            if 'data' in feed_data:
+                for threat in feed_data['data'].get('threats', []):
+                    threat['source'] = feed_name
+                    threats.append(threat)
+        return threats
 
     def clear_cache(self):
-        """Clear the enrichment cache"""
+        """Clear all cached feed data"""
         self.cache = {}
-        return {'status': 'cache_cleared', 'timestamp': datetime.now().isoformat()}
+        self.last_update = None
+
+    def remove_feed(self, feed_name: str) -> bool:
+        """Remove a threat feed"""
+        for i, feed in enumerate(self.feeds):
+            if feed['name'] == feed_name:
+                self.feeds.pop(i)
+                if feed_name in self.cache:
+                    del self.cache[feed_name]
+                return True
+        return False
