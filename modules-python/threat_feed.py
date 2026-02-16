@@ -61,3 +61,7 @@ class ThreatFeed:
                     del self.cache[feed_name]
                 return True
         return False
+
+    def fetch_indicators(self) -> List[Dict[str, Any]]:
+        """Fetch threat indicators from all configured feeds"""
+        return self.aggregate_threats()
