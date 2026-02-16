@@ -105,7 +105,16 @@ class IOCSubmission(BaseModel):
 
     @validator("ioc_type")
     def validate_ioc_type(cls, v):
-        allowed_types = ["ip", "domain", "url", "hash", "email", "md5", "sha1", "sha256"]
+        allowed_types = [
+            "ip",
+            "domain",
+            "url",
+            "hash",
+            "email",
+            "md5",
+            "sha1",
+            "sha256",
+        ]
         if v.lower() not in allowed_types:
             raise ValueError(f"IOC type must be one of: {', '.join(allowed_types)}")
         return v.lower()
@@ -361,7 +370,9 @@ async def get_task_status(request: Request, task_id: str):
             try:
                 session = db_manager.get_session()
                 task = (
-                    session.query(ReconTask).filter(ReconTask.task_id == task_id).first()
+                    session.query(ReconTask)
+                    .filter(ReconTask.task_id == task_id)
+                    .first()
                 )
                 if task:
                     session.close()

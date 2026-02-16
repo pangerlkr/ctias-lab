@@ -41,7 +41,9 @@ class TestIOCAnalyzer:
 
     def test_identify_sha1_hash(self):
         """Test SHA1 hash identification"""
-        result = self.analyzer.identify_ioc_type("da39a3ee5e6b4b0d3255bfef95601890afd80709")
+        result = self.analyzer.identify_ioc_type(
+            "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+        )
         assert result == "sha1"
 
     def test_identify_sha256_hash(self):
