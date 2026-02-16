@@ -41,16 +41,12 @@ class TestIOCAnalyzer:
 
     def test_identify_sha1_hash(self):
         """Test SHA1 hash identification"""
-        result = self.analyzer.identify_ioc_type(
-            "da39a3ee5e6b4b0d3255bfef95601890afd80709"
-        )
+        result = self.analyzer.identify_ioc_type("da39a3ee5e6b4b0d3255bfef95601890afd80709")
         assert result == "sha1"
 
     def test_identify_sha256_hash(self):
         """Test SHA256 hash identification"""
-        result = self.analyzer.identify_ioc_type(
-            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-        )
+        result = self.analyzer.identify_ioc_type("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
         assert result == "sha256"
 
     def test_identify_unknown(self):
@@ -133,12 +129,8 @@ class TestThreatFeed:
         self.feed.add_feed("feed1", "https://example.com/feed1")
         self.feed.add_feed("feed2", "https://example.com/feed2")
 
-        self.feed.update_feed(
-            "feed1", {"threats": [{"ip": "1.2.3.4", "severity": "high"}]}
-        )
-        self.feed.update_feed(
-            "feed2", {"threats": [{"domain": "evil.com", "severity": "medium"}]}
-        )
+        self.feed.update_feed("feed1", {"threats": [{"ip": "1.2.3.4", "severity": "high"}]})
+        self.feed.update_feed("feed2", {"threats": [{"domain": "evil.com", "severity": "medium"}]})
 
         threats = self.feed.aggregate_threats()
         assert len(threats) == 2
@@ -168,9 +160,7 @@ class TestThreatFeed:
     def test_fetch_indicators(self):
         """Test fetching indicators"""
         self.feed.add_feed("test_feed", "https://example.com/feed")
-        self.feed.update_feed(
-            "test_feed", {"threats": [{"ip": "1.2.3.4", "severity": "high"}]}
-        )
+        self.feed.update_feed("test_feed", {"threats": [{"ip": "1.2.3.4", "severity": "high"}]})
         indicators = self.feed.fetch_indicators()
         assert len(indicators) == 1
         assert indicators[0]["ip"] == "1.2.3.4"

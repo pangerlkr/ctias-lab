@@ -35,9 +35,7 @@ def analyze_data():
             result = {"anomalies": anomalies, "total_analyzed": len(predictions)}
 
             # Cache result
-            redis_client.setex(
-                f"analysis:{data.get('id', 'unknown')}", 3600, json.dumps(result)
-            )
+            redis_client.setex(f"analysis:{data.get('id', 'unknown')}", 3600, json.dumps(result))
 
             return jsonify(result), 200
         else:
