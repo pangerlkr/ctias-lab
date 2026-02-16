@@ -3,13 +3,13 @@
 import sys
 from pathlib import Path
 
+import pytest
+
 # Add modules-python to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "modules-python"))
 
-import pytest
-
-from ioc_analyzer import IOCAnalyzer
-from threat_feed import ThreatFeed
+from ioc_analyzer import IOCAnalyzer  # noqa: E402
+from threat_feed import ThreatFeed  # noqa: E402
 
 
 class TestIOCAnalyzer:

@@ -1,6 +1,5 @@
 """Configuration management for CTIAS Lab"""
 
-import os
 from typing import Optional
 
 from pydantic import Field

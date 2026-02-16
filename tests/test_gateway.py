@@ -3,14 +3,13 @@
 import sys
 from pathlib import Path
 
+import pytest
+
 # Add gateway to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "gateway"))
 
-import pytest
-from fastapi.testclient import TestClient
-
-# Import after adding to path
-from main import app
+from fastapi.testclient import TestClient  # noqa: E402
+from main import app  # noqa: E402
 
 client = TestClient(app)
 
