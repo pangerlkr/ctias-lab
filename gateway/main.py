@@ -8,7 +8,7 @@ from typing import List
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 # Setup logging
 logging.basicConfig(
@@ -49,7 +49,8 @@ class IOCSubmission(BaseModel):
     ioc_type: str  # ip, domain, url, hash, email
     tags: List[str] = Field(default_factory=list)
 
-    @validator("ioc_type")
+    @field_validator("ioc_type")
+    @classmethod
     def validate_ioc_type(cls, v):
         allowed_types = ["ip", "domain", "url", "hash", "email", "md5", "sha1", "sha256"]
         if v.lower() not in allowed_types:
@@ -61,7 +62,8 @@ class ReconRequest(BaseModel):
     target: str = Field(..., min_length=1, max_length=512)
     modules: List[str] = Field(default=["dns", "whois", "ssl"])
 
-    @validator("modules")
+    @field_validator("modules")
+    @classmethod
     def validate_modules(cls, v):
         allowed_modules = ["dns", "whois", "ssl", "ports", "headers", "certificates"]
         invalid = [m for m in v if m not in allowed_modules]

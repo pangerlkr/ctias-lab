@@ -205,3 +205,32 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# CTIAS Lab specific
+# Backups
+*.sql
+*.sql.gz
+/backups/
+
+# Docker volumes
+postgres_data/
+
+# Local development
+*.local
+.DS_Store
+
+# Secrets and credentials
+secrets/
+*.pem
+*.key
+*.crt
+credentials.json
+
+# Node modules
+node_modules/
+npm-debug.log*
+
+# Java build
+*.class
+*.jar
+target/
