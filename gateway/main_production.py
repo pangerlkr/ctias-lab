@@ -6,6 +6,8 @@ from datetime import datetime
 from typing import List, Optional
 
 import redis
+from config import get_settings
+from database import DatabaseManager, IOCRecord, ReconTask
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -13,9 +15,6 @@ from pydantic import BaseModel, Field, validator
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
-
-from config import get_settings
-from database import DatabaseManager, IOCRecord, ReconTask
 
 # Setup logging
 logging.basicConfig(
@@ -359,9 +358,7 @@ async def get_task_status(request: Request, task_id: str):
             try:
                 cached = redis_client.get(f"recon:{task_id}")
                 if cached:
-                    return TaskStatusResponse(
-                        task_id=task_id, status="processing", progress=50, results=None
-                    )
+                    return TaskStatusResponse(task_id=task_id, status="processing", progress=50, results=None)
             except Exception as e:
                 logger.error(f"Redis lookup error: {e}")
 
@@ -369,11 +366,7 @@ async def get_task_status(request: Request, task_id: str):
         if db_manager:
             try:
                 session = db_manager.get_session()
-                task = (
-                    session.query(ReconTask)
-                    .filter(ReconTask.task_id == task_id)
-                    .first()
-                )
+                task = session.query(ReconTask).filter(ReconTask.task_id == task_id).first()
                 if task:
                     session.close()
                     return TaskStatusResponse(
