@@ -19,9 +19,7 @@ class Settings(BaseSettings):
     redis_url: str = Field(default="redis://redis:6379/0", env="REDIS_URL")
 
     # JWT
-    jwt_secret: str = Field(
-        default="change_me_in_production_minimum_32_characters", env="JWT_SECRET"
-    )
+    jwt_secret: str = Field(default="change_me_in_production_minimum_32_characters", env="JWT_SECRET")
     jwt_algorithm: str = Field(default="HS256", env="JWT_ALGORITHM")
     jwt_expiration_minutes: int = Field(default=60, env="JWT_EXPIRATION_MINUTES")
 
@@ -31,9 +29,7 @@ class Settings(BaseSettings):
     api_workers: int = Field(default=4, env="API_WORKERS")
 
     # CORS
-    cors_origins: str = Field(
-        default="http://localhost:3000,http://localhost:8000", env="CORS_ORIGINS"
-    )
+    cors_origins: str = Field(default="http://localhost:3000,http://localhost:8000", env="CORS_ORIGINS")
 
     # Rate Limiting
     rate_limit_enabled: bool = Field(default=True, env="RATE_LIMIT_ENABLED")
