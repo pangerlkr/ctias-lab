@@ -52,7 +52,16 @@ class IOCSubmission(BaseModel):
     @field_validator("ioc_type")
     @classmethod
     def validate_ioc_type(cls, v):
-        allowed_types = ["ip", "domain", "url", "hash", "email", "md5", "sha1", "sha256"]
+        allowed_types = [
+            "ip",
+            "domain",
+            "url",
+            "hash",
+            "email",
+            "md5",
+            "sha1",
+            "sha256",
+        ]
         if v.lower() not in allowed_types:
             raise ValueError(f"IOC type must be one of: {', '.join(allowed_types)}")
         return v.lower()
