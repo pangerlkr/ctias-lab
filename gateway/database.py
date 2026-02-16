@@ -1,7 +1,6 @@
 """Database models for CTIAS Lab"""
 
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import (
     JSON,
