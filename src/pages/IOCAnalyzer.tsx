@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Crosshair, Send, Trash2, AlertCircle } from 'lucide-react'
+import { Crosshair, Send, Trash2, CircleAlert as AlertCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import type { IOCRecord, ThreatIntel } from '../lib/types'
 import { identifyIOCType, calculateRiskScore, getMetadata } from '../lib/iocUtils'

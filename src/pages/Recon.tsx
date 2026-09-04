@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Search, Play, Trash2, AlertCircle } from 'lucide-react'
+import { Search, Play, Trash2, CircleAlert as AlertCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import type { ReconTask } from '../lib/types'
 

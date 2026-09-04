@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Database, Trash2, AlertCircle, Plus } from 'lucide-react'
+import { Database, Trash2, CircleAlert as AlertCircle, Plus } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import type { ThreatIntel } from '../lib/types'
 

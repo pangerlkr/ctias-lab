@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { FileCode2, Plus, Trash2, AlertCircle, Save } from 'lucide-react'
+import { FileCode2, Plus, Trash2, CircleAlert as AlertCircle, Save } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import type { DetectionRule } from '../lib/types'
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { GraduationCap, ArrowLeft, CheckCircle } from 'lucide-react'
+import { GraduationCap, ArrowLeft, CircleCheck as CheckCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import type { TrainingScenario } from '../lib/types'
 

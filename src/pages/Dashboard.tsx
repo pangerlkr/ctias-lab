@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Shield, AlertTriangle, Crosshair, FileCode2, TrendingUp, Search } from 'lucide-react'
+import { Shield, TriangleAlert as AlertTriangle, Crosshair, FileCode2, TrendingUp, Search } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import type { IOCRecord, ReconTask, DetectionRule } from '../lib/types'
 
