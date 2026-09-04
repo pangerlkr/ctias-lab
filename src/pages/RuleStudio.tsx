@@ -1,7 +1,12 @@
 import { useState, useEffect } from 'react'
-import { FileCode2, Plus, Trash2, CircleAlert as AlertCircle, Save } from 'lucide-react'
-import { supabase } from '../lib/supabase'
-import type { DetectionRule } from '../lib/types'
+import { FileCode2, Plus, Trash2, CircleAlert as AlertCircle, Save, Radio } from 'lucide-react'
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const supabase = createClient(supabaseUrl, supabaseAnonKey, { auth: { persistSession: false } })
+
+interface DetectionRule { id: string; title: string; description: string | null; rule_format: string; rule_content: string; severity: 'low' | 'medium' | 'high' | 'critical'; status: 'test' | 'stable' | 'deprecated'; author: string; created_at: string; updated_at: string }
 
 export default function RuleStudio() {
   const [rules, setRules] = useState<DetectionRule[]>([])
@@ -10,8 +15,25 @@ export default function RuleStudio() {
   const [error, setError] = useState('')
   const [selectedRule, setSelectedRule] = useState<DetectionRule | null>(null)
   const [formData, setFormData] = useState({ title: '', description: '', rule_format: 'sigma', rule_content: '', severity: 'medium' as 'low' | 'medium' | 'high' | 'critical', status: 'test' as 'test' | 'stable' | 'deprecated', author: 'CTIAS Lab' })
+  const [livePulse, setLivePulse] = useState(false)
 
-  useEffect(() => { loadRules() }, [])
+  useEffect(() => {
+    loadRules()
+    const channel = supabase
+      .channel('rules-realtime')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'detection_rules' }, (payload) => {
+        setRules((prev) => [payload.new as DetectionRule, ...prev])
+        setLivePulse(true); setTimeout(() => setLivePulse(false), 1000)
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'detection_rules' }, (payload) => {
+        setRules((prev) => prev.filter((r) => r.id !== payload.old.id))
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'detection_rules' }, (payload) => {
+        setRules((prev) => prev.map((r) => r.id === payload.new.id ? payload.new as DetectionRule : r))
+      })
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [])
 
   async function loadRules() {
     try { const { data } = await supabase.from('detection_rules').select('*').order('created_at', { ascending: false }); setRules((data as DetectionRule[]) || []) } catch { /**/ } finally { setLoading(false) }
@@ -23,17 +45,28 @@ export default function RuleStudio() {
     try {
       const { error: insertError } = await supabase.from('detection_rules').insert({ title: formData.title, description: formData.description, rule_format: formData.rule_format, rule_content: formData.rule_content, severity: formData.severity, status: formData.status, author: formData.author })
       if (insertError) throw insertError
-      setFormData({ title: '', description: '', rule_format: 'sigma', rule_content: '', severity: 'medium', status: 'test', author: 'CTIAS Lab' }); setShowForm(false); await loadRules()
+      await supabase.from('activity_logs').insert({
+        event_type: 'rule_created',
+        severity: formData.severity === 'critical' ? 'high' : 'medium',
+        title: `New Rule: ${formData.title}`,
+        description: `Format: ${formData.rule_format}, Severity: ${formData.severity}`,
+        source: 'Rule Studio',
+        metadata: { rule_format: formData.rule_format, severity: formData.severity, status: formData.status } as Record<string, unknown>,
+      })
+      setFormData({ title: '', description: '', rule_format: 'sigma', rule_content: '', severity: 'medium', status: 'test', author: 'CTIAS Lab' }); setShowForm(false)
     } catch (err) { setError(err instanceof Error ? err.message : 'Failed to save rule.') }
   }
 
-  async function handleDelete(id: string) { try { await supabase.from('detection_rules').delete().eq('id', id); setSelectedRule(null); await loadRules() } catch { /**/ } }
+  async function handleDelete(id: string) { try { await supabase.from('detection_rules').delete().eq('id', id); setSelectedRule(null) } catch { /**/ } }
 
   return (
     <>
       <div className="topbar">
         <h2>Rule Studio</h2>
-        <button className="btn btn-primary btn-sm" onClick={() => setShowForm(!showForm)}><Plus size={16} />{showForm ? 'Cancel' : 'New Rule'}</button>
+        <div className="flex gap-12" style={{ alignItems: 'center' }}>
+          <div className={`live-indicator ${livePulse ? 'pulse' : ''}`}><Radio size={12} /> LIVE</div>
+          <button className="btn btn-primary btn-sm" onClick={() => setShowForm(!showForm)}><Plus size={16} />{showForm ? 'Cancel' : 'New Rule'}</button>
+        </div>
       </div>
       <div className="content fade-in">
         {showForm && (

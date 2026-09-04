@@ -1,5 +1,5 @@
 import { Routes, Route, NavLink } from 'react-router-dom'
-import { Shield, LayoutDashboard, Search, Crosshair, FileCode2, GraduationCap, Database } from 'lucide-react'
+import { LayoutDashboard, Search, Crosshair, FileCode2, GraduationCap, Database } from 'lucide-react'
 import Dashboard from './pages/Dashboard'
 import IOCAnalyzer from './pages/IOCAnalyzer'
 import Recon from './pages/Recon'
@@ -12,7 +12,7 @@ export default function App() {
     <div className="app">
       <aside className="sidebar">
         <div className="sidebar-header">
-          <div className="logo"><Shield size={20} /></div>
+          <div className="logo"><img src="https://pangerlkr.link/logo.png" alt="CTIAS Lab" /></div>
           <div>
             <h1>CTIAS Lab</h1>
             <span>Threat Intelligence</span>

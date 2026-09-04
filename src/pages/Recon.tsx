@@ -1,7 +1,12 @@
 import { useState, useEffect } from 'react'
-import { Search, Play, Trash2, CircleAlert as AlertCircle } from 'lucide-react'
-import { supabase } from '../lib/supabase'
-import type { ReconTask } from '../lib/types'
+import { Search, Play, Trash2, CircleAlert as AlertCircle, Radio, ChevronDown, ChevronRight, Loader } from 'lucide-react'
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const supabase = createClient(supabaseUrl, supabaseAnonKey, { auth: { persistSession: false } })
+
+interface ReconTask { id: string; task_id: string; target: string; modules: string[]; status: string; progress: number; results: Record<string, unknown>; error: string | null; created_at: string; updated_at: string; completed_at: string | null }
 
 const AVAILABLE_MODULES = [
   { id: 'dns', label: 'DNS Resolution' }, { id: 'whois', label: 'WHOIS Lookup' },
@@ -16,11 +21,29 @@ export default function Recon() {
   const [error, setError] = useState('')
   const [tasks, setTasks] = useState<ReconTask[]>([])
   const [loading, setLoading] = useState(true)
+  const [expandedTask, setExpandedTask] = useState<string | null>(null)
+  const [livePulse, setLivePulse] = useState(false)
 
-  useEffect(() => { loadTasks() }, [])
+  useEffect(() => {
+    loadTasks()
+    const channel = supabase
+      .channel('recon-realtime')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'recon_tasks' }, (payload) => {
+        setTasks((prev) => [payload.new as ReconTask, ...prev].slice(0, 50))
+        setLivePulse(true); setTimeout(() => setLivePulse(false), 1000)
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'recon_tasks' }, (payload) => {
+        setTasks((prev) => prev.filter((t) => t.id !== payload.old.id))
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'recon_tasks' }, (payload) => {
+        setTasks((prev) => prev.map((t) => t.id === payload.new.id ? payload.new as ReconTask : t))
+      })
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [])
 
   async function loadTasks() {
-    try { const { data } = await supabase.from('recon_tasks').select('*').order('created_at', { ascending: false }).limit(20); setTasks((data as ReconTask[]) || []) } catch { /* */ } finally { setLoading(false) }
+    try { const { data } = await supabase.from('recon_tasks').select('*').order('created_at', { ascending: false }).limit(50); setTasks((data as ReconTask[]) || []) } catch { /* */ } finally { setLoading(false) }
   }
 
   function toggleModule(id: string) {
@@ -34,21 +57,62 @@ export default function Recon() {
     setSubmitting(true)
     try {
       const taskId = `recon_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`
-      const mockResults: Record<string, unknown> = {}
-      for (const mod of selectedModules) mockResults[mod] = generateMockResult(mod, target.trim())
+
       const { error: insertError } = await supabase.from('recon_tasks').insert({
-        task_id: taskId, target: target.trim(), modules: selectedModules, status: 'completed', progress: 100, results: mockResults, completed_at: new Date().toISOString(),
+        task_id: taskId, target: target.trim(), modules: selectedModules, status: 'running', progress: 0, results: {}, error: null,
       })
       if (insertError) throw insertError
-      setTarget(''); await loadTasks()
-    } catch (err) { setError(err instanceof Error ? err.message : 'Failed to start recon task.') } finally { setSubmitting(false) }
+
+      const apiUrl = `${supabaseUrl}/functions/v1/recon`
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ target: target.trim(), modules: selectedModules }),
+      })
+
+      if (!response.ok) {
+        const errBody = await response.json().catch(() => ({}))
+        throw new Error(errBody.error || `Recon failed (HTTP ${response.status})`)
+      }
+
+      const data = await response.json() as { results: Record<string, unknown> }
+      const reconResults = data.results || {}
+
+      const { error: updateError } = await supabase.from('recon_tasks').update({
+        status: 'completed', progress: 100, results: reconResults, completed_at: new Date().toISOString(),
+      }).eq('task_id', taskId)
+
+      if (updateError) throw updateError
+
+      await supabase.from('activity_logs').insert({
+        event_type: 'recon_completed',
+        severity: 'info',
+        title: `Recon Completed: ${target.trim()}`,
+        description: `Modules: ${selectedModules.join(', ')}`,
+        source: 'Attack Surface',
+        metadata: { target: target.trim(), modules: selectedModules } as Record<string, unknown>,
+      })
+      setTarget('')
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to start recon task.'
+      await supabase.from('recon_tasks').update({
+        status: 'failed', error: msg, completed_at: new Date().toISOString(),
+      }).eq('task_id', `recon_${target.trim()}`)
+      setError(msg)
+    } finally { setSubmitting(false) }
   }
 
-  async function handleDelete(id: string) { try { await supabase.from('recon_tasks').delete().eq('id', id); await loadTasks() } catch { /* */ } }
+  async function handleDelete(id: string) { try { await supabase.from('recon_tasks').delete().eq('id', id) } catch { /* */ } }
 
   return (
     <>
-      <div className="topbar"><h2>Attack Surface Recon</h2></div>
+      <div className="topbar">
+        <h2>Attack Surface Recon</h2>
+        <div className={`live-indicator ${livePulse ? 'pulse' : ''}`}><Radio size={12} /> LIVE</div>
+      </div>
       <div className="content fade-in">
         <div className="grid grid-2 mb-24">
           <div className="card">
@@ -65,18 +129,29 @@ export default function Recon() {
                   ))}
                 </div>
               </div>
-              <button type="submit" className="btn btn-primary" disabled={submitting}><Play size={16} />{submitting ? 'Running...' : 'Start Recon'}</button>
+              <button type="submit" className="btn btn-primary" disabled={submitting}>
+                {submitting ? <><Loader size={16} className="spin" /> Running...</> : <><Play size={16} /> Start Recon</>}
+              </button>
             </form>
           </div>
           <div className="card">
             <div className="card-header"><h3>How It Works</h3></div>
             <div className="text-sm text-secondary">
-              <p>Attack Surface Reconnaissance discovers and maps information about a target:</p>
+              <p>Attack Surface Reconnaissance performs real-time lookups against your target using public APIs:</p>
               <ul style={{ marginLeft: 20, marginTop: 12, marginBottom: 12, lineHeight: 1.8 }}>
-                <li><strong>DNS</strong> - Resolve A, MX, TXT, NS records</li><li><strong>WHOIS</strong> - Registration and ownership data</li>
-                <li><strong>SSL/TLS</strong> - Certificate details and validity</li><li><strong>Ports</strong> - Common open ports and services</li>
-                <li><strong>Headers</strong> - HTTP response headers</li><li><strong>Certificates</strong> - Deep certificate analysis</li>
+                <li><strong>DNS</strong> - Live A, AAAA, MX, TXT, NS, CNAME records via Google DNS-over-HTTPS</li>
+                <li><strong>WHOIS</strong> - Registration data via RDAP protocol</li>
+                <li><strong>SSL/TLS</strong> - Certificate transparency logs via CertSpotter</li>
+                <li><strong>Ports</strong> - HTTP/HTTPS reachability check</li>
+                <li><strong>Headers</strong> - Live HTTP response headers</li>
+                <li><strong>Certificates</strong> - Deep certificate analysis from CT logs</li>
               </ul>
+              <div className="mt-16" style={{ padding: 12, borderRadius: 8, background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)' }}>
+                <div className="flex gap-8" style={{ alignItems: 'center' }}>
+                  <Radio size={14} color="var(--accent)" />
+                  <span className="text-sm">All lookups use live public APIs — no mock or simulated data</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -91,12 +166,32 @@ export default function Recon() {
                   <div className="flex-between mb-16">
                     <div><div className="mono" style={{ fontSize: 15, fontWeight: 600 }}>{task.target}</div><div className="text-muted text-sm">{new Date(task.created_at).toLocaleString()}</div></div>
                     <div className="flex gap-8" style={{ alignItems: 'center' }}>
-                      <span className={`badge ${task.status === 'completed' ? 'badge-low' : 'badge-neutral'}`}>{task.status}</span>
+                      <span className={`badge ${task.status === 'completed' ? 'badge-low' : task.status === 'failed' ? 'badge-critical' : task.status === 'running' ? 'badge-medium' : 'badge-neutral'}`}>
+                        {task.status === 'running' && <Loader size={10} className="spin" style={{ display: 'inline', marginRight: 4 }} />}
+                        {task.status}
+                      </span>
                       <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(task.id)}><Trash2 size={14} /></button>
                     </div>
                   </div>
                   <div className="flex gap-8 mb-16" style={{ flexWrap: 'wrap' }}>{task.modules.map((m) => <span key={m} className="badge badge-info">{m}</span>)}</div>
-                  <div className="result-box">{JSON.stringify(task.results, null, 2)}</div>
+                  {task.error ? (
+                    <div className="alert alert-error" style={{ margin: 0 }}><AlertCircle size={14} /> {task.error}</div>
+                  ) : task.status === 'running' ? (
+                    <div className="flex gap-8" style={{ alignItems: 'center', padding: 20, color: 'var(--text-muted)' }}>
+                      <Loader size={16} className="spin" /> Running live lookups...
+                    </div>
+                  ) : Object.keys(task.results).length > 0 ? (
+                    <>
+                      <div className="result-box" style={{ maxHeight: expandedTask === task.id ? '600px' : '120px', overflow: 'hidden', transition: 'max-height 0.3s ease' }}>
+                        {JSON.stringify(task.results, null, 2)}
+                      </div>
+                      <button className="btn btn-ghost btn-sm mt-16" onClick={() => setExpandedTask(expandedTask === task.id ? null : task.id)}>
+                        {expandedTask === task.id ? <><ChevronDown size={14} /> Collapse</> : <><ChevronRight size={14} /> Expand Details</>}
+                      </button>
+                    </>
+                  ) : (
+                    <div className="text-muted text-sm">No results</div>
+                  )}
                 </div>
               ))}
             </div>
@@ -105,16 +200,4 @@ export default function Recon() {
       </div>
     </>
   )
-}
-
-function generateMockResult(module: string, target: string): Record<string, unknown> {
-  const results: Record<string, Record<string, unknown>> = {
-    dns: { records: { A: ['93.184.216.34'], MX: ['mail.example.com'], TXT: ['v=spf1 include:_spf.example.com ~all'], NS: ['ns1.example.com', 'ns2.example.com'] }, resolved: true },
-    whois: { registrar: 'ICANN', created: '1995-08-14', expires: '2025-08-13', nameServers: ['a.iana-servers.net', 'b.iana-servers.net'], status: 'active' },
-    ssl: { issuer: 'DigiCert TLS RSA SHA256 2020 CA1', validFrom: '2024-01-15', validTo: '2025-01-15', protocol: 'TLS 1.3', keySize: 2048 },
-    ports: { openPorts: [{ port: 80, service: 'HTTP' }, { port: 443, service: 'HTTPS' }, { port: 22, service: 'SSH' }], scanned: true },
-    headers: { Server: 'nginx/1.21.6', 'Content-Type': 'text/html; charset=UTF-8', 'X-Frame-Options': 'SAMEORIGIN', 'X-Content-Type-Options': 'nosniff', 'Strict-Transport-Security': 'max-age=31536000' },
-    certificates: { subject: `CN=${target}`, issuer: 'DigiCert', serialNumber: '0F:1A:2B:3C:4D:5E:6F', signatureAlgorithm: 'SHA256-RSA', valid: true },
-  }
-  return results[module] || { status: 'no data' }
 }
